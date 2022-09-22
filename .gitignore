@@ -1,0 +1,12 @@
+venv/
+yolov5/
+Schoolbus-Images-*/
+images/
+__pycache__/
+.camera_credentials
+.comet.config
+.roboflow_api_key
+.aws_credentials
+*.pt
+index.html
+docs/
