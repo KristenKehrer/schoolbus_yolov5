@@ -1,4 +1,4 @@
-# schoolbus_yolov5_take2
+# schoolbus_yolov5
 I'll be linking blog article tutorials to walk you through the project here when they're completed.
 
 See the training metrics here: [Workbook](https://www.comet.com/kristenkehrer/schoolbus-yolov5-take2/view/new/panels)
