@@ -9,6 +9,9 @@ $env:COMET_LOG_PER_CLASS_METRICS = "true"
 # Log predictions, which I think this does as a default anyways....
 $env:COMET_LOG_PREDICTIONS = "true"
 
+# Reduce the number image uploads, as the dataset artifact is already in comet.
+# I'm hoping this avoids the "ResponseError('too many 502 error responses')" issue when uploading comet files.
+$env:COMET_MAX_IMAGE_UPLOADS = 20
 
 # Calling `train.py` from the yolov5 repo
 python .\yolov5\train.py `
@@ -19,8 +22,8 @@ python .\yolov5\train.py `
     <# image size in pixels #> `
     --img 640 `
     <# number of epochs #> `
-    --epochs 5 `
+    --epochs 100 `
     <# 0 refers to "first CUDA GPU device" #> `
     --device 0 `
-    <# Save model file to Comet every X epochs #> `
     --save-period 5
+

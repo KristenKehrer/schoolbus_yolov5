@@ -12,7 +12,7 @@ import shutil
 # These are all the "configuration parameters" to set before running this script
 roboflow_workspace = "kristen-kehrer"
 roboflow_project = "schoolbus-images"
-roboflow_version = 3
+roboflow_version = 4
 staging_directory = f"Schoolbus-Images-{roboflow_version}"
 roboflow_api_key_file = '.roboflow_api_key'
 

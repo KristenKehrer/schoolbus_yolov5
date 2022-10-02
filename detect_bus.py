@@ -17,7 +17,7 @@ from aws import test_aws_access
 def load_model():
     """Download `best.pt` weights file from comet experiemnt"""
     # Set the COMET_EXPERIMENT_KEY to match the latest experiment from running .\train.ps1
-    comet_experiment_key = 'kristenkehrer/schoolbus-yolov5-take2/5755679d272b41a0bed23ea8e4ca7ffc'
+    comet_experiment_key = 'kristenkehrer/schoolbus-yolov5-take2/af779d3658694f14af63dce9c24074cf'
     model_path = 'schoolbus_weights.pt'
     print(f'downloading {model_path} from comet experiment {comet_experiment_key}...')
 
