@@ -1,4 +1,6 @@
 # schoolbus_yolov5
+
+This project uses yolov5 to detect the school bus passing my house and then send a text.  
 I'll be linking blog article tutorials to walk you through the project here when they're completed.
 
 See the training metrics here: [Workbook](https://www.comet.com/kristenkehrer/schoolbus-yolov5-take2/view/new/panels)
