@@ -22,8 +22,8 @@ python .\yolov5\train.py `
     <# image size in pixels #> `
     --img 640 `
     <# number of epochs #> `
-    --epochs 100 `
+    --epochs 150 `
     <# 0 refers to "first CUDA GPU device" #> `
     --device 0 `
-    --save-period 5
+    --save-period 150
 
