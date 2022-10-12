@@ -182,8 +182,8 @@ def detect(
                         # Append a row to the datagrid  (this is called once per prediction on each image tested)
                         dg.append([
                             image_name,         # Part of the filename to describe the image
-                            Image(source_img),  # The original image used to run detection
-                            Image(im0),         # after detection the original image with bounding boxes for predictions
+                            Image(cv2.cvtColor(source_img, cv2.COLOR_BGR2RGB)),  # The original image used to run detection
+                            Image(cv2.cvtColor(im0, cv2.COLOR_BGR2RGB)),         # after detection the original image with bounding boxes for predictions
                             names[int(cls)],    # The class of this prediction
                             float(conf)         # Confidence of prediction (float value > 0, < 1)
                         ])
