@@ -179,12 +179,18 @@ def detect(
                         # (it may not be unique across all images, but that shouldn't break anything.)
                         image_name = str(path).split('\\')[-1].split('.')[0].split('-')[-1]
 
+                        classname = names[int(cls)]
+                        dg_source = Image(cv2.cvtColor(source_img, cv2.COLOR_BGR2RGB)) # Datagrid appears to require RGB colorspace, so convert from BGR
+                        dg_pred = Image(cv2.cvtColor(source_img, cv2.COLOR_BGR2RGB))
+                        float_xyxy = list(map(lambda coord: float(coord), xyxy)) # xyxy is a list of pytorch tensors that can easily be converted to numbers with float()
+                        dg_pred.add_bounding_boxes(classname, [float_xyxy[0: 2], float_xyxy[2: 4]], score=float(conf)) # Add Datagrid bounding boxes based on the yolov5 predictions
+
                         # Append a row to the datagrid  (this is called once per prediction on each image tested)
                         dg.append([
                             image_name,         # Part of the filename to describe the image
-                            Image(cv2.cvtColor(source_img, cv2.COLOR_BGR2RGB)),  # The original image used to run detection
-                            Image(cv2.cvtColor(im0, cv2.COLOR_BGR2RGB)),         # after detection the original image with bounding boxes for predictions
-                            names[int(cls)],    # The class of this prediction
+                            dg_source,  # The original image used to run detection
+                            dg_pred,         # after detection the original image with bounding boxes for predictions
+                            classname,    # The class of this prediction
                             float(conf)         # Confidence of prediction (float value > 0, < 1)
                         ])
 
@@ -232,7 +238,7 @@ def detect(
 
     # Kristen - If datagrid is enabled, save the datagrid file to "schoolbus-detection.datagrid"
     if enable_data_grid:
-        dg.save(filename='schoolbus-detection.datagrid')
+        dg.save(filename='schoolbus-detection2.datagrid')
 
     # Print results
     t = tuple(x.t / seen * 1E3 for x in dt)  # speeds per image
