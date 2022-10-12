@@ -10,3 +10,4 @@ __pycache__/
 *.pt
 index.html
 docs/
+.idea/
