@@ -15,9 +15,10 @@ roboflow_project = "schoolbus-images"
 roboflow_version = 4
 staging_directory = f"Schoolbus-Images-{roboflow_version}"
 roboflow_api_key_file = '.roboflow_api_key'
+comet_artifact_name = 'schoolbus-yolov5-take2'
 
 
-def create_artifact():
+def download_roboflow_artifact():
     # Delete the staging directory if it already exists
     if os.path.exists(staging_directory):
         shutil.rmtree(staging_directory)
@@ -35,6 +36,8 @@ def create_artifact():
     project = rf.workspace(roboflow_workspace).project(roboflow_project)
     dataset = project.version(roboflow_version).download("yolov5")
 
+
+def create_comet_artifact():
     # Start a comet experiment (project name / api key are already set in `.comet.config`)
     experiment = Experiment()
 
@@ -50,7 +53,7 @@ def create_artifact():
     metadata['names'] = names_dict
 
     # Create the comet Artifact object
-    artifact = Artifact(name="schoolbus-yolov5-take2", artifact_type="dataset", metadata=metadata)
+    artifact = Artifact(name=comet_artifact_name, artifact_type="dataset", metadata=metadata)
 
     # Iterate through all files in `staging_directory`, and add the file to the artifact
     for file in glob(f'{staging_directory}/**/*.*', recursive=True):
@@ -63,9 +66,10 @@ def create_artifact():
 
 def write_yolov5_data_file():
     with open('comet_artifact.yaml', 'w') as file:
-        file.write(f'path: "comet://kristenkehrer/schoolbus-yolov5-take2:latest"\n')
+        file.write(f'path: comet://kristenkehrer/{comet_artifact_name}:latest"\n')
 
 
 # When this script is run, run these two functions:
-create_artifact()
-write_yolov5_data_file()
+download_roboflow_artifact()
+#create_comet_artifact()
+#write_yolov5_data_file()

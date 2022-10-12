@@ -5,15 +5,15 @@ comet-ml==3.31.14     ## For experiment tracking
 roboflow==0.2.15      ## Used for data annotations and augmentation
 boto3==1.24.80        ## For sending texts with AWS
 pytz==2022.2.1
-Pycco==0.6.0
 
 # These pytorch dependencies are determined using https://pytorch.org/get-started/locally/
 # Options: PyTorch Build: Stable, Your OS: Windows, Package: Pip, Language: Python, Compute Platform: CUDA 11.6
 # These come precompiled and packaged with CUDA for accessing the GPU
 --extra-index-url https://download.pytorch.org/whl/cu116
 torch==1.12.1+cu116
-torchaudio==0.12.1+cu116
 torchvision==0.13.1+cu116
+
+kangas==1.1.12
 
 
 ###########################################################
@@ -28,8 +28,8 @@ Pillow>=7.1.2
 PyYAML>=5.3.1
 requests>=2.23.0
 scipy>=1.4.1
-torch>=1.7.0  # see https://pytorch.org/get-started/locally/ (recommended)
-torchvision>=0.8.1
+#torch>=1.7.0  # see https://pytorch.org/get-started/locally/ (recommended)
+#torchvision>=0.8.1
 tqdm>=4.64.0
 
 # Logging -------------------------------------

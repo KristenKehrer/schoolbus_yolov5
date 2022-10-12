@@ -3,6 +3,9 @@
 Custom fork of the yolov5/detector.  Search for comments with "Kristen" to find my edits.
 """
 
+# Kristen - add data grid suuport
+from datagrid import DataGrid, Image
+
 import argparse
 import os
 import platform
@@ -26,7 +29,7 @@ from utils.torch_utils import select_device, smart_inference_mode
 
 
 @smart_inference_mode()
-def run(
+def detect(
         weights=ROOT / 'yolov5s.pt',  # model path or triton URL
         source=ROOT / 'data/images',  # file/dir/URL/glob/screen/0(webcam)
         data=ROOT / 'data/coco128.yaml',  # dataset.yaml path
@@ -54,7 +57,8 @@ def run(
         half=False,  # use FP16 half-precision inference
         dnn=False,  # use OpenCV DNN for ONNX inference
         vid_stride=1,  # video frame-rate stride
-        on_objects_detected=False  # Kristen - Add a hook which returns information when objects are detected
+        on_objects_detected=False,  # Kristen - Add a hook which returns information when objects are detected
+        enable_data_grid=False # Kristen - when true, add detection results to a datagrid
 ):
     source = str(source)
     save_img = not nosave and not source.endswith('.txt')  # save inference images
@@ -91,6 +95,13 @@ def run(
     model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(), Profile(), Profile())
 
+    # Kristen - If using datagrid, initialize the grid here.
+    dg = None
+    if enable_data_grid:
+        dg = DataGrid(
+            name="schoolbus-yolov5-detection",
+            columns=["Filename", "SourceImage", "Prediction", "Label",  "Confidence"]
+        )
 
     for path, im, im0s, vid_cap, s in dataset:
         with dt[0]:
@@ -109,8 +120,7 @@ def run(
         with dt[2]:
             pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
 
-        # Second-stage classifier (optional)
-        # pred = utils.general.apply_classifier(pred, classifier_model, im, im0s)
+
 
         # Process predictions
         for i, det in enumerate(pred):  # per image
@@ -120,6 +130,10 @@ def run(
                 s += f'{i}: '
             else:
                 p, im0, frame = path, im0s.copy(), getattr(dataset, 'frame', 0)
+
+            # Kristen - Take a copy of the image so we can have the "source" image in the datagrid
+            # with no bounding boxes.
+            source_img = im0.copy()
 
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # im.jpg
@@ -156,9 +170,28 @@ def run(
                         annotator.box_label(xyxy, label, color=colors(c, True))
                     if save_crop:
                         save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
+
+                    # Kristen - If using datagrid, add rows to the grid here.  Because we are inside the loop
+                    # detections, we will not add a row to the datagrid for images that don't report any detections.
+                    if enable_data_grid:
+                        # Our image files look like: C:\...\20-09-2022_09-01-07-991497_jpg.rf.ebb606...4bb955.jpg
+                        # and this line just cuts up the string to make it just show "99149_jpg" string which is shorter
+                        # (it may not be unique across all images, but that shouldn't break anything.)
+                        image_name = str(path).split('\\')[-1].split('.')[0].split('-')[-1]
+
+                        # Append a row to the datagrid  (this is called once per prediction on each image tested)
+                        dg.append([
+                            image_name,         # Part of the filename to describe the image
+                            Image(source_img),  # The original image used to run detection
+                            Image(im0),         # after detection the original image with bounding boxes for predictions
+                            names[int(cls)],    # The class of this prediction
+                            float(conf)         # Confidence of prediction (float value > 0, < 1)
+                        ])
+
                 # Kristen - If there were any objects, call the on_objects_detected function with them and the image
                 if len(detected_objects) and on_objects_detected:
                         on_objects_detected(objects=detected_objects, img=im0)
+
             # Stream results
             im0 = annotator.result()
             if view_img:
@@ -197,6 +230,10 @@ def run(
         # Print time (inference-only)
         LOGGER.info(f"{s}{'' if len(det) else '(no detections), '}{dt[1].dt * 1E3:.1f}ms")
 
+    # Kristen - If datagrid is enabled, save the datagrid file to "schoolbus-detection.datagrid"
+    if enable_data_grid:
+        dg.save(filename='schoolbus-detection.datagrid')
+
     # Print results
     t = tuple(x.t / seen * 1E3 for x in dt)  # speeds per image
     LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS per image at shape {(1, 3, *imgsz)}' % t)
@@ -206,46 +243,6 @@ def run(
     if update:
         strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
 
-
-def parse_opt():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', nargs='+', type=str, default=ROOT / 'yolov5s.pt', help='model path or triton URL')
-    parser.add_argument('--source', type=str, default=ROOT / 'data/images', help='file/dir/URL/glob/screen/0(webcam)')
-    parser.add_argument('--data', type=str, default=ROOT / 'data/coco128.yaml', help='(optional) dataset.yaml path')
-    parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[640], help='inference size h,w')
-    parser.add_argument('--conf-thres', type=float, default=0.25, help='confidence threshold')
-    parser.add_argument('--iou-thres', type=float, default=0.45, help='NMS IoU threshold')
-    parser.add_argument('--max-det', type=int, default=1000, help='maximum detections per image')
-    parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
-    parser.add_argument('--view-img', action='store_true', help='show results')
-    parser.add_argument('--save-txt', action='store_true', help='save results to *.txt')
-    parser.add_argument('--save-conf', action='store_true', help='save confidences in --save-txt labels')
-    parser.add_argument('--save-crop', action='store_true', help='save cropped prediction boxes')
-    parser.add_argument('--nosave', action='store_true', help='do not save images/videos')
-    parser.add_argument('--classes', nargs='+', type=int, help='filter by class: --classes 0, or --classes 0 2 3')
-    parser.add_argument('--agnostic-nms', action='store_true', help='class-agnostic NMS')
-    parser.add_argument('--augment', action='store_true', help='augmented inference')
-    parser.add_argument('--visualize', action='store_true', help='visualize features')
-    parser.add_argument('--update', action='store_true', help='update all models')
-    parser.add_argument('--project', default=ROOT / 'runs/detect', help='save results to project/name')
-    parser.add_argument('--name', default='exp', help='save results to project/name')
-    parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
-    parser.add_argument('--line-thickness', default=3, type=int, help='bounding box thickness (pixels)')
-    parser.add_argument('--hide-labels', default=False, action='store_true', help='hide labels')
-    parser.add_argument('--hide-conf', default=False, action='store_true', help='hide confidences')
-    parser.add_argument('--half', action='store_true', help='use FP16 half-precision inference')
-    parser.add_argument('--dnn', action='store_true', help='use OpenCV DNN for ONNX inference')
-    parser.add_argument('--vid-stride', type=int, default=1, help='video frame-rate stride')
-    opt = parser.parse_args()
-    opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
-    print_args(vars(opt))
-    return opt
-
-
-# Kristen - update the signature here to just accept **kwargs, and call it "detect" for clarity
-def detect(**kwargs):
-    check_requirements(exclude=('tensorboard', 'thop'))
-    run(**kwargs)
 
 
 
