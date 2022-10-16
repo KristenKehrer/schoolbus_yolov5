@@ -11,11 +11,12 @@ import comet_ml
 from detector import Detector
 from aws import test_aws_access
 
+
 # Making sure that I'm using the best model from all of my training runs and downloading it from Comet.  
 # The experiment key needs to be manually updated.
 # Returns the path of model file
 def load_model():
-    """Download `best.pt` weights file from comet experiemnt"""
+    """Download `best.pt` weights file from comet experiment"""
     # Set the COMET_EXPERIMENT_KEY to match the latest experiment from running .\train.ps1
     comet_experiment_key = 'kristenkehrer/schoolbus-yolov5-take2/c935d75f6f0e40f0a085e0860613c2fa'
     model_path = 'schoolbus_weights.pt'
@@ -60,7 +61,7 @@ def run_detection():
         # to the `detector.objects_detected` function
         on_objects_detected=lambda **kwargs: detector.objects_detected(**kwargs),
         # Have yolov5 save video file of detection run in `yolov5/runs/detection/expX/`
-        nosave=False,
+        nosave=True,
         # Use the webcam URL as the source for detection
         source=get_rtsp_url()
     )
